@@ -1,7 +1,7 @@
-import 'package:desafio_flutter/data_classes/content_classes/videos.dart';
-import 'package:desafio_flutter/data_classes/content_classes/audios.dart';
-import 'package:desafio_flutter/data_classes/content_classes/pdfs.dart';
-
+import 'dart:convert';
+import 'package:desafio_flutter/services/services.dart';
+import 'package:desafio_flutter/classes/content.dart';
+import 'package:localstorage/localstorage.dart';
 class Data {
   late final Videos videosUrls;
   late final Audios audiosUrls;
@@ -74,7 +74,7 @@ class Data {
 
   void addOnArray(String key, dynamic value){
     Map<String, dynamic> verification = checkExtension(key, value, getList(key, null));
-    verification["listRef"].addContent(value);
+    verification["listRef"].addContent({"url": value, "initialValue": ""});
   }
 
   void addByMap(Map<dynamic, dynamic> map, String key){
@@ -83,27 +83,45 @@ class Data {
     }
   }
 
-  factory Data.fromJson(Map<dynamic, dynamic> json){
-    var data = Data(
-      videosUrls: Videos(),
-      audiosUrls: Audios(),
-      pdfsUrls: Pdfs(),
-    );
-    json.forEach((key, value){
-      if (value is String) {
-        data.addOnArray(key, value);
-      } else if(value is List){
-        var listMap = value.asMap();
-        data.addByMap(listMap, key);
-      } else if(value is Map){
-        data.addByMap(value, key);
+}
+
+Future<Data> fromJson(Map<dynamic, dynamic> remoteJson) async {
+  var data = Data(
+    videosUrls: Videos([]),
+    audiosUrls: Audios([]),
+    pdfsUrls: Pdfs([]),
+  );
+  remoteJson.forEach((key, value){
+    if (value is String) {
+      data.addOnArray(key, value);
+    } else if(value is List){
+      var listMap = value.asMap();
+      data.addByMap(listMap, key);
+    } else if(value is Map){
+      data.addByMap(value, key);
+    }
+  });
+  Map<String, dynamic> contentClasses = data.getAllContentClasses();
+  dynamic cached;
+  for (var entry in contentClasses.entries) {
+    String key = "${entry.key}s";
+    LocalStorage storage = LocalStorage(key);
+    await storage.ready;
+    await storage.clear();
+    cached = storage.getItem(key);
+    if(cached == null){
+      await storage.setItem(key, json.encode([]));
+      List<dynamic> array = contentClasses[entry.key].getContent();
+      for (var element in array) {
+        List<dynamic> newArray = json.decode(storage.getItem(key));
+        newArray.add(element);
+        await storage.setItem(key, json.encode(newArray));         
       }
-    });
-    Map<String, dynamic> contentClasses = data.getAllContentClasses();
-    return Data(
-      videosUrls: contentClasses["video"],
-      audiosUrls: contentClasses["audio"],
-      pdfsUrls: contentClasses["pdf"],
-    );
+    }
   }
+  return Data(
+    videosUrls: Videos(await getValueAtLocalStorage("videos")),
+    audiosUrls: Audios(await getValueAtLocalStorage("audios")),
+    pdfsUrls: Pdfs(await getValueAtLocalStorage("pdfs")),
+  );
 }

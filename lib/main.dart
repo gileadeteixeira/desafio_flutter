@@ -1,10 +1,40 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:desafio_flutter/data_classes/data.dart';
+import 'package:desafio_flutter/classes/data.dart';
 import 'package:desafio_flutter/services/services.dart';
-import 'package:desafio_flutter/components/list_videos.dart';
+import 'package:desafio_flutter/components/lists/list_videos.dart';
+import 'package:desafio_flutter/components/lists/list_audios.dart';
+import 'package:desafio_flutter/components/lists/list_pdfs.dart';
 
-void main() {
+class HomeButton extends StatelessWidget{
+  final String text;
+  final void Function() onPressed;
+
+  const HomeButton({Key? key,
+    required this.text,
+    required this.onPressed,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: 20.0,
+      ),
+      child: TextButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 25.0, color: Colors.black)
+        ),
+      ),
+    );
+  }
+}
+void main(){
   runApp(const MyApp());
 }
 
@@ -13,11 +43,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Get Json App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Home'),
     );
   }
 }
@@ -36,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    futureData = Services().fetchData();
+    futureData = fetchData();
   }
   @override
   Widget build(BuildContext context) {
@@ -50,7 +80,40 @@ class _MyHomePageState extends State<MyHomePage> {
           builder: (context, snapshot){
             if (snapshot.hasData) {
               Data data = snapshot.data!;
-              return ListVideos(videos: data.videosUrls);
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  HomeButton(
+                    text: "Abrir Lista de Vídeos",
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<dynamic>(
+                        builder: (_) => ListVideos(videos: data.videosUrls),
+                      )
+                    ),
+                  ),
+                  HomeButton(
+                    text: "Abrir Lista de PDFs",
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<dynamic>(
+                        builder: (_) => ListPdfs(pdfs: data.pdfsUrls),
+                      )
+                    ),
+                  ),
+                  HomeButton(
+                    text: "Abrir Lista de Audios",
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<dynamic>(
+                        builder: (_) => ListAudios(audios: data.audiosUrls),
+                      )
+                    ),
+                  )
+                ],
+              );
+              // return ListVideos(videos: data.videosUrls);
             } else if (snapshot.hasError) {
               return Text('${snapshot.error}');
             }

@@ -25,11 +25,20 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   http: ^0.13.4
+  native_pdf_view: ^5.0.0
+  flutter_cache_manager: ^3.3.0
+  localstorage: ^4.0.0+1
+  flutter_mobx: ^2.0.2
+  mobx_codegen: ^2.0.4
+  chewie: ^1.2.2
+  audio_service: ^0.18.2
+  just_audio: ^0.9.18
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.0
+  build_runner: ^2.1.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
