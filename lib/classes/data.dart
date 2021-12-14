@@ -23,7 +23,7 @@ class Data {
 
   Map<String, dynamic> checkExtension(String key, String url, Map<String, dynamic> list){
     RegExp regExp = RegExp(
-      r"\.\w{3,}($|\?)",
+      r"\.\w{3,}($|\?)", //https:\\url\arquivo.extensao -> .extensao
       caseSensitive: false,
       multiLine: false,
     );
@@ -32,9 +32,9 @@ class Data {
     bool result;
     dynamic listRef;
     if(match != null){
-      findedExtension = match.group(0);
-      result = findedExtension == list["extension"] ? true : false;
-      listRef = result ? list["listRef"] : getList(null, findedExtension)["listRef"];
+      findedExtension = match.group(0);//arquivo.pdf -> extensão encontrada = .pdf
+      result = findedExtension == list["extension"] ? true : false;//a extensão encontrada é igual a da extensão padrão da lista solicitada? ex: a lista espera um .pdf, a url tem .mp3, então o resultado é falso.
+      listRef = result ? list["listRef"] : getList(null, findedExtension)["listRef"];//se o resultado for falso, encontre a referencia para a lista verdadeira relativa à extensão encontrada
     } else {
       findedExtension = null;
       result = false;
@@ -44,13 +44,14 @@ class Data {
       "result": result,
       "key": key,
       "url": url,
-      "requiredExtension": list["extension"],
-      "findedExtension": findedExtension,
-      "listRef": listRef,
-    };
+      "requiredExtension": list["extension"],//ex: a lista de pdfs requer um .pdf
+      "findedExtension": findedExtension,//ex: mas foi encontrado um .mp3
+      "listRef": listRef,//ex: portanto, a verdadeira lista é essa
+    };//required e finded podem ser iguais, e serão iguais se nenhum erro ocorrer. essa função apenas previne possíveis erros anteriores ao tratamento (a requisição ja trouxe o dado errado, por exemplo);
   }
 
   Map<String, dynamic> getList(String? key, String? extension){
+    //função para retornar a lista de referencia da classe (pdf, audio, etc.)
     Map<String, dynamic> contentClasses = getAllContentClasses();
     dynamic getListRef(String extns){
       for (var entry in contentClasses.entries) {
@@ -61,12 +62,12 @@ class Data {
     }
     return extension == null
       ?
-        {
+        {//qual a extensão dessa lista de referência?
           "listRef": contentClasses[key],
           "extension": contentClasses[key].getExtension(),
         }
       :
-        {
+        {//qual a lista de referencia dessa extensão?
           "listRef": getListRef(extension),
           "extension": extension,
         };
@@ -92,24 +93,24 @@ Future<Data> fromJson(Map<dynamic, dynamic> remoteJson) async {
     pdfsUrls: Pdfs([]),
   );
   remoteJson.forEach((key, value){
-    if (value is String) {
+    if (value is String) {//se o dado vier como:  "chave":"valor" adiciona direto
       data.addOnArray(key, value);
-    } else if(value is List){
+    } else if(value is List){//se o dado vier como:  "chave":["valor"] transforma o array em map e adiciona por map
       var listMap = value.asMap();
       data.addByMap(listMap, key);
-    } else if(value is Map){
+    } else if(value is Map){//se o dado vier como: "chave":{"chave":"valor"} adiciona por map
       data.addByMap(value, key);
     }
   });
   Map<String, dynamic> contentClasses = data.getAllContentClasses();
   dynamic cached;
-  for (var entry in contentClasses.entries) {
-    String key = "${entry.key}s";
+  for (var entry in contentClasses.entries) {//salvar dados no localStorage
+    String key = "${entry.key}s";//audio -> audios
     LocalStorage storage = LocalStorage(key);
     await storage.ready;
-    await storage.clear();
+    //await storage.clear(); //consertar erro ao salvar dado errado em localStorage
     cached = storage.getItem(key);
-    if(cached == null){
+    if(cached == null){//só adicione se o localStorage ainda não tiver nada
       await storage.setItem(key, json.encode([]));
       List<dynamic> array = contentClasses[entry.key].getContent();
       for (var element in array) {
@@ -120,7 +121,7 @@ Future<Data> fromJson(Map<dynamic, dynamic> remoteJson) async {
     }
   }
   return Data(
-    videosUrls: Videos(await getValueAtLocalStorage("videos")),
+    videosUrls: Videos(await getValueAtLocalStorage("videos")),//os valores foram salvos no localStorage, agora é so pegar e utilizar no app
     audiosUrls: Audios(await getValueAtLocalStorage("audios")),
     pdfsUrls: Pdfs(await getValueAtLocalStorage("pdfs")),
   );

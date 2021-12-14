@@ -71,11 +71,11 @@ class _ListState extends State<ListItem> {
           )
         );
         setState(() {
-          item.initialValue.setValue(result);
+          item.initialValue.setValue(result);//atualiza o valor em execução
           item.arrayMaster.firstWhere((e) => 
             e["url"] == item.element["url"]
-          )["initialValue"] = item.initialValue.value;
-          updateLocalStorage(item.storageKey, item.arrayMaster);
+          )["initialValue"] = item.initialValue.value;//atualiza o valor no array pai
+          updateLocalStorage(item.storageKey, item.arrayMaster);//re-salva o array pai no localStorage
         });
       }
     );
