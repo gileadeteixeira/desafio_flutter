@@ -46,11 +46,7 @@ class _ListState extends State<ListVideos> {
                   )["initialValue"];
                   InitialValue initialValue = InitialValue(value: value);
 
-                  return ListItem(
-                    arrayMaster: arrayMaster,
-                    element: element,
-                    initialValue: initialValue,
-                    storageKey: "videos",
+                  return ListItem(                   
                     listItemIcon: const Icon(
                       Icons.ondemand_video,
                       size: 30.0,
@@ -61,6 +57,9 @@ class _ListState extends State<ListVideos> {
                       url: element["url"],
                       title: "Vídeo ${index+1}",
                       initialValue: initialValue,
+                      arrayMaster: arrayMaster,
+                      element: element,
+                      storageKey: "videos",
                     ),
                   );
                 }

@@ -6,10 +6,16 @@ import 'package:desafio_flutter/classes/initial_value.dart';
 class ViewerPdfs extends StatefulWidget {
   final String url;
   final InitialValue initialValue;
+  final List<dynamic> arrayMaster;
+  final Map<String, dynamic> element;
+  final String storageKey;
 
   const ViewerPdfs({Key? key,
     required this.url,
     required this.initialValue,
+    required this.arrayMaster,
+    required this.element,
+    required this.storageKey,
   }) : super(key: key);
 
   @override
@@ -29,6 +35,12 @@ class _PDFPage extends State<ViewerPdfs> {
   }
 
   @override
+  void dispose() {
+    pdfController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -41,22 +53,22 @@ class _PDFPage extends State<ViewerPdfs> {
                 document: PdfDocument.openFile(path),
                 initialPage: lastPage > 1 ? lastPage : 0,
               );
-              return WillPopScope(
-                onWillPop: () async {
-                  Navigator.pop(context, lastPage);
-                  return true;
-                },
-                child: Scaffold(
-                  appBar: AppBar(
-                    title: const Text('Arquivo PDF'),
-                  ),
-                  body: PdfView(
-                    controller: pdfController,
-                    scrollDirection: Axis.vertical,
-                    onPageChanged: (page) {
-                      lastPage = page;
-                    },
-                  ),
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Arquivo PDF'),
+                ),
+                body: PdfView(
+                  controller: pdfController,
+                  scrollDirection: Axis.vertical,
+                  onPageChanged: (page) {
+                    lastPage = page;
+                    widget.initialValue.updateValue(
+                      page,
+                      widget.storageKey,
+                      widget.arrayMaster,
+                      widget.element,
+                    );
+                  },
                 ),
               );
             } else if (snapshot.hasError) {
@@ -64,6 +76,8 @@ class _PDFPage extends State<ViewerPdfs> {
             }
             return const Center(
               child: CircularProgressIndicator(
+                backgroundColor: Colors.black,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
                 value: 1.5,
               ),
             );

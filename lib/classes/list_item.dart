@@ -1,22 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:desafio_flutter/services/services.dart';
-import 'package:desafio_flutter/classes/initial_value.dart';
 
 class ListItem extends StatefulWidget{
-  final List<dynamic> arrayMaster;
-  final Map<String, dynamic> element;  
-  final InitialValue initialValue;
-  final String storageKey;
   final Icon listItemIcon;
   final String listItemTitle;
-  final dynamic viewer;
-  
+  final Widget viewer;
 
-  const ListItem({Key? key, 
-    required this.arrayMaster,
-    required this.element,
-    required this.initialValue,
-    required this.storageKey,
+  const ListItem({Key? key,
     required this.listItemIcon,
     required this.listItemTitle,
     required this.viewer,
@@ -63,20 +52,13 @@ class _ListState extends State<ListItem> {
           ),
         ),
       ),
-      onTap: () async {
-        dynamic result = await Navigator.push(
+      onTap: () {
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => item.viewer
           )
         );
-        setState(() {
-          item.initialValue.setValue(result);//atualiza o valor em execução
-          item.arrayMaster.firstWhere((e) => 
-            e["url"] == item.element["url"]
-          )["initialValue"] = item.initialValue.value;//atualiza o valor no array pai
-          updateLocalStorage(item.storageKey, item.arrayMaster);//re-salva o array pai no localStorage
-        });
       }
     );
   }

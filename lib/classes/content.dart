@@ -21,10 +21,10 @@ class Content {
 }
 
 class Videos extends Content{
-  Videos(List<dynamic> list) : super(extension: ".mp3", list: list);
+  Videos(List<dynamic> list) : super(extension: ".m3u8", list: list);
 }
 class Audios extends Content{
-  Audios(List<dynamic> list) : super(extension: ".m3u8", list: list);
+  Audios(List<dynamic> list) : super(extension: ".mp3", list: list);
 }
 class Pdfs extends Content{
   Pdfs(List<dynamic> list) : super(extension: ".pdf", list: list);

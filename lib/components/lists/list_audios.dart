@@ -47,10 +47,6 @@ class _ListState extends State<ListAudios> {
                   InitialValue initialValue = InitialValue(value: value);
 
                   return ListItem(
-                    arrayMaster: arrayMaster,
-                    element: element,
-                    initialValue: initialValue,
-                    storageKey: "audios",
                     listItemIcon: const Icon(
                       Icons.audiotrack,
                       size: 30.0,
@@ -60,7 +56,10 @@ class _ListState extends State<ListAudios> {
                     viewer: ViewerAudios(
                       url: element["url"],
                       title: "Audio ${index+1}",
-                      initialValue: initialValue,
+                      initialValue: initialValue,                      
+                      arrayMaster: arrayMaster,
+                      element: element,
+                      storageKey: "audios",
                     ),
                   );
                 }

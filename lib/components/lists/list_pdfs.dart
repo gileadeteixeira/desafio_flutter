@@ -48,10 +48,6 @@ class _ListState extends State<ListPdfs> {
                   InitialValue initialValue = InitialValue(value: value);
 
                   return ListItem(
-                    arrayMaster: arrayMaster,
-                    element: element,
-                    initialValue: initialValue,
-                    storageKey: "pdfs",
                     listItemIcon: const Icon(
                       Icons.menu_book,
                       size: 30.0,
@@ -65,6 +61,9 @@ class _ListState extends State<ListPdfs> {
                     viewer: ViewerPdfs(
                       url: element["url"],
                       initialValue: initialValue,
+                      arrayMaster: arrayMaster,
+                      element: element,
+                      storageKey: "pdfs",
                     ),
                   );
                 }

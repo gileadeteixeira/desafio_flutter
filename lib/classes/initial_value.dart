@@ -1,3 +1,4 @@
+import 'package:desafio_flutter/services/services.dart';
 import 'package:mobx/mobx.dart';
 part 'initial_value.g.dart';
 
@@ -13,4 +14,13 @@ abstract class _InitialValue with Store {
   setValue(dynamic newValue) {
     value = newValue;
   }
+  
+  updateValue(dynamic newValue, String storageKey, List<dynamic> arrayMaster, Map<String, dynamic> element){
+    setValue(newValue);
+    arrayMaster.firstWhere((e) => 
+      e["url"] == element["url"]
+    )["initialValue"] = value;//atualiza o valor no array pai
+    updateLocalStorage(storageKey, arrayMaster);//re-salva o array pai no localStorage
+  }
+  
 }
