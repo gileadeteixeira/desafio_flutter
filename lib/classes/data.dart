@@ -34,7 +34,7 @@ class Data {
     if(match != null){
       findedExtension = match.group(0);//arquivo.pdf -> extensão encontrada = .pdf
       result = findedExtension == list["extension"] ? true : false;//a extensão encontrada é igual a da extensão padrão da lista solicitada? ex: a lista espera um .pdf, a url tem .mp3, então o resultado é falso.
-      listRef = result ? list["listRef"] : getList(null, findedExtension)["listRef"];//se o resultado for falso, encontre a referencia para a lista verdadeira relativa à extensão encontrada
+      listRef = result ? list["list_ref"] : getList(null, findedExtension)["list_ref"];//se o resultado for falso, encontre a referencia para a lista verdadeira relativa à extensão encontrada
     } else {
       findedExtension = null;
       result = false;
@@ -44,9 +44,9 @@ class Data {
       "result": result,
       "key": key,
       "url": url,
-      "requiredExtension": list["extension"],//ex: a lista de pdfs requer um .pdf
-      "findedExtension": findedExtension,//ex: mas foi encontrado um .mp3
-      "listRef": listRef,//ex: portanto, a verdadeira lista é essa
+      "required_extension": list["extension"],//ex: a lista de pdfs requer um .pdf
+      "finded_extension": findedExtension,//ex: mas foi encontrado um .mp3
+      "list_ref": listRef,//ex: portanto, a verdadeira lista é essa
     };//required e finded podem ser iguais, e serão iguais se nenhum erro ocorrer. essa função apenas previne possíveis erros anteriores ao tratamento (a requisição ja trouxe o dado errado, por exemplo);
   }
 
@@ -63,19 +63,19 @@ class Data {
     return extension == null
       ?
         {//qual a extensão dessa lista de referência?
-          "listRef": contentClasses[key],
+          "list_ref": contentClasses[key],
           "extension": contentClasses[key].getExtension(),
         }
       :
         {//qual a lista de referencia dessa extensão?
-          "listRef": getListRef(extension),
+          "list_ref": getListRef(extension),
           "extension": extension,
         };
   }
 
   void addOnArray(String key, dynamic value){
     Map<String, dynamic> verification = checkExtension(key, value, getList(key, null));
-    verification["listRef"].addContent({"url": value, "initialValue": ""});
+    verification["list_ref"].addContent({"url": value, "initial_value": ""});
   }
 
   void addByMap(Map<dynamic, dynamic> map, String key){

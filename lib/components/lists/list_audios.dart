@@ -4,11 +4,14 @@ import 'package:desafio_flutter/classes/content.dart';
 import 'package:desafio_flutter/classes/list_item.dart';
 import 'package:desafio_flutter/services/services.dart';
 import 'package:desafio_flutter/classes/initial_value.dart';
+import 'package:audio_service/audio_service.dart';
 class ListAudios extends StatefulWidget{
   final Audios audios;
+  final AudioHandler audioHandler;
 
   const ListAudios({Key? key, 
     required this.audios,
+    required this.audioHandler,
   }) : super(key: key);
 
   @override
@@ -43,7 +46,7 @@ class _ListState extends State<ListAudios> {
                   Map<String, dynamic> element = audios.getContent().elementAt(index);
                   dynamic value = arrayMaster.firstWhere((e) => 
                     e["url"] == element["url"]
-                  )["initialValue"];
+                  )["initial_value"];
                   InitialValue initialValue = InitialValue(value: value);
 
                   return ListItem(
@@ -60,6 +63,7 @@ class _ListState extends State<ListAudios> {
                       arrayMaster: arrayMaster,
                       element: element,
                       storageKey: "audios",
+                      audioHandler: widget.audioHandler,
                     ),
                   );
                 }

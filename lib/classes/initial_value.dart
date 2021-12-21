@@ -19,7 +19,7 @@ abstract class _InitialValue with Store {
     setValue(newValue);
     arrayMaster.firstWhere((e) => 
       e["url"] == element["url"]
-    )["initialValue"] = value;//atualiza o valor no array pai
+    )["initial_value"] = value;//atualiza o valor no array pai
     updateLocalStorage(storageKey, arrayMaster);//re-salva o array pai no localStorage
   }
   

@@ -43,7 +43,7 @@ class _ListState extends State<ListVideos> {
                   Map<String, dynamic> element = videos.getContent().elementAt(index);
                   dynamic value = arrayMaster.firstWhere((e) =>
                     e["url"] == element["url"]
-                  )["initialValue"];
+                  )["initial_value"];
                   InitialValue initialValue = InitialValue(value: value);
 
                   return ListItem(                   

@@ -4,8 +4,8 @@ import 'package:audio_service/audio_service.dart';
 // import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:desafio_flutter/classes/initial_value.dart';
-import 'package:desafio_flutter/components/copy/common.dart';
-import 'package:desafio_flutter/services/audio_service.dart';
+// import 'package:desafio_flutter/components/copy/common.dart';
+// import 'package:desafio_flutter/services/audio_service.dart';
 
 
 class ViewerAudios extends StatefulWidget {
@@ -15,6 +15,7 @@ class ViewerAudios extends StatefulWidget {
   final List<dynamic> arrayMaster;
   final Map<String, dynamic> element;
   final String storageKey;
+  final AudioHandler audioHandler;
 
   const ViewerAudios({Key? key,
     required this.url,
@@ -23,26 +24,18 @@ class ViewerAudios extends StatefulWidget {
     required this.arrayMaster,
     required this.element,
     required this.storageKey,
+    required this.audioHandler,
   }) : super(key: key);
 
   @override
-  _AudioPage createState() => _AudioPage();
-  
+  _AudioPage createState() => _AudioPage();  
 }
 
 class _AudioPage extends State<ViewerAudios> {
   late MediaItem item;
+  late Timer timer;
   late AudioHandler audioHandler;
-  late Duration currentPosition;
-
-  @override
-  void initState() {
-    super.initState();
-    item = MediaItem(
-      id: widget.url,
-      title: widget.title,
-    );
-  }
+  late int currentPosition;
 
   Stream<MediaState> getMediaStateStream(AudioHandler audioHandler) {
     return Rx.combineLatest2<MediaItem?, Duration, MediaState>(
@@ -51,81 +44,102 @@ class _AudioPage extends State<ViewerAudios> {
       (mediaItem, position) => MediaState(mediaItem, position)
     );
   }
+
+  IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
+    icon: Icon(iconData),
+    iconSize: 64.0,
+    onPressed: onPressed,
+  );
+
+  void updatePosition() async {
+    Duration current = await AudioService.position.firstWhere((duration) => true);
+    currentPosition = current.inMilliseconds;
+    widget.initialValue.updateValue(
+      currentPosition,
+      widget.storageKey,
+      widget.arrayMaster,
+      widget.element,
+    );
+  }
+
   @override
-  void dispose() {
-    finishAudioHandler(audioHandler);
+  void initState() {
+    super.initState();
+    item = MediaItem(
+      id: widget.url,
+      title: widget.title,
+    );
+    widget.audioHandler.prepareFromUri(Uri.parse(widget.url));
+    currentPosition = widget.initialValue.value == "" ? 0 : widget.initialValue.value;
+    timer = Timer.periodic(const Duration(seconds: 3), (Timer t) => updatePosition());
+  }
+
+  @override
+  void dispose() async {
+    await widget.audioHandler.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Stream<MediaState> mediaStateStream = Rx.combineLatest2<MediaItem?, Duration, MediaState>(
+    //   widget.audioHandler.mediaItem,
+    //   AudioService.position,
+    //   (mediaItem, position) => MediaState(mediaItem, position)
+    // );  
     return Scaffold(
       appBar: AppBar(
         title: Text(item.title),
       ),
       body: Center(
-        child: FutureBuilder<AudioHandler>(
-          future: initAudioHandler(item),
-          builder: (context, snapshot){
-            if (snapshot.hasData){
-              audioHandler = snapshot.data!;
-              IconButton _button(IconData iconData, VoidCallback onPressed) => IconButton(
-                icon: Icon(iconData),
-                iconSize: 64.0,
-                onPressed: onPressed,
-              );
-              Stream<MediaState> mediaStateStream =
-              Rx.combineLatest2<MediaItem?, Duration, MediaState>(
-                audioHandler.mediaItem,
-                AudioService.position,
-                (mediaItem, position) => MediaState(mediaItem, position)
-              );
-              return StreamBuilder<PlaybackState>(
-                stream: audioHandler.playbackState,
-                builder: (context, snapshot) {
-                  final playing = snapshot.data?.playing ?? false;
-                  // final processingState = snapshot.data?.processingState ?? AudioProcessingState.idle;
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _button(Icons.fast_rewind, audioHandler.rewind),
-                          if (playing)
-                            _button(Icons.pause, audioHandler.pause)
-                          else
-                            _button(Icons.play_arrow, audioHandler.play),
-                          _button(Icons.stop, audioHandler.stop),
-                          _button(Icons.fast_forward, audioHandler.fastForward),
-                        ]
-                      ),
-                      StreamBuilder<MediaState>(
-                        stream: mediaStateStream,
-                        builder: (context, snapshot) {
-                          final mediaState = snapshot.data;
-                          return SeekBar(
-                            duration: mediaState?.mediaItem?.duration ?? Duration.zero,
-                            position: mediaState?.position ?? Duration.zero,
-                            onChanged: (newPosition) {
-                              audioHandler.seek(newPosition);
-                              currentPosition = newPosition;
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                }
-              );
-            } else if (snapshot.hasError) {
-              return Text('${snapshot.error}');
-            }
-            // By default, show a loading spinner.
-            return const CircularProgressIndicator();
+        child: StreamBuilder<PlaybackState>(
+          stream: widget.audioHandler.playbackState,
+          builder: (context, snapshot) {
+            final playing = snapshot.data?.playing ?? false;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _button(Icons.fast_rewind, widget.audioHandler.rewind),
+                    if (playing)
+                      _button(Icons.pause, widget.audioHandler.pause)
+                    else
+                    _button(
+                      Icons.play_arrow,
+                      () {
+                        widget.audioHandler.playFromUri(
+                          Uri.parse(widget.url),
+                          {
+                            "initial_value": currentPosition
+                          } 
+                        );
+                      }
+                    ),
+                    _button(Icons.stop, widget.audioHandler.stop),
+                    _button(Icons.fast_forward, widget.audioHandler.fastForward),
+                  ]
+                ),
+                // StreamBuilder<MediaState>(
+                //   stream: mediaStateStream,
+                //   builder: (context, snapshot) {
+                //     final mediaState = snapshot.data;
+                //     return SeekBar(
+                //       duration: mediaState?.mediaItem?.duration ?? Duration.zero,
+                //       position: mediaState?.position ?? Duration.zero,
+                //       onChanged: (newPosition) {
+                //         widget.audioHandler.seek(newPosition);
+                //         currentPosition = newPosition.inMilliseconds;
+                //       },
+                //     );
+                //   },
+                // ),
+              ],
+            );
           }
-        )
-      ),
+        ),
+      )
     );
   }
 }

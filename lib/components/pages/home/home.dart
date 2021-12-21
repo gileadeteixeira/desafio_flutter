@@ -7,7 +7,11 @@ import 'package:desafio_flutter/components/lists/list_audios.dart';
 import 'package:desafio_flutter/components/lists/list_pdfs.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final Map<String, dynamic> extra;
+
+  const HomePage({Key? key,
+    required this.extra,
+  }) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -44,13 +48,15 @@ class HomePage extends StatelessWidget {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute<dynamic>(
-                      builder: (_) => ListAudios(audios: data.audiosUrls),
+                      builder: (_) => ListAudios(
+                        audios: data.audiosUrls,
+                        audioHandler: extra["audio_handler"]
+                      ),
                     )
                   ),
                 )
               ],
             );
-            // return ListVideos(videos: data.videosUrls);
           } else if (snapshot.hasError) {
             return Text('${snapshot.error}');
           }

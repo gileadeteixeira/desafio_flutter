@@ -44,7 +44,7 @@ class _ListState extends State<ListPdfs> {
                   dynamic matchElement = arrayMaster.firstWhere((e) => 
                     e["url"] == element["url"]
                   );
-                  dynamic value = matchElement["initialValue"] == "" ? 1 : matchElement["initialValue"];
+                  dynamic value = matchElement["initial_value"] == "" ? 1 : matchElement["initial_value"];
                   InitialValue initialValue = InitialValue(value: value);
 
                   return ListItem(

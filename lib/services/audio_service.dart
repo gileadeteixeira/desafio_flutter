@@ -3,26 +3,20 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
-Future<AudioHandler> initAudioHandler(MediaItem item) async {
-  final AudioPlayerHandler audioPlayerHandler = AudioPlayerHandler(item);
-  if(!await audioPlayerHandler.state.isEmpty){
-    print("sim");
-    return await AudioService.init(
-      builder: () => audioPlayerHandler,
-      config: const AudioServiceConfig(
-        androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
-        androidNotificationChannelName: 'Audio Playback',
-        androidNotificationOngoing: true,
-      ),
-    );
-  } else {
-    return audioPlayerHandler;
-  }
+Future<AudioHandler> initAudioHandler() async {
+  return await AudioService.init(
+    builder: () => AudioPlayerHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
+      androidNotificationChannelName: 'Audio Playback',
+      androidNotificationOngoing: true,
+    ),
+  );
 }
 
 Future<void> finishAudioHandler(AudioHandler handler) async {
   await handler.stop();
-  return await AudioService.cacheManager.dispose();
+  // return await AudioService.cacheManager.dispose();
 }
 
 class AudioPlayerHandler extends BaseAudioHandler{
@@ -30,27 +24,46 @@ class AudioPlayerHandler extends BaseAudioHandler{
   late dynamic _state;
 
   dynamic get state => _state;
+  AudioPlayer get player => _player;
   
-  AudioPlayerHandler(MediaItem item){
+  AudioPlayerHandler(){
     playbackState.add(playbackState.value.copyWith(
       controls: [MediaControl.play],
       processingState: AudioProcessingState.loading,
     ));
-
-    _player.setUrl(item.id).then((_) {
-      playbackState.add(playbackState.value.copyWith(
-        processingState: AudioProcessingState.ready,
-      ));
-    });    
-
+    //preparePlayer();
     _state = playbackState;
-    // _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
-    // mediaItem.add(item);
-    // _player.setAudioSource(AudioSource.uri(Uri.parse(item.id)));
+  }  
+
+  void preparePlayer(/*MediaItem item*/) async {
+    await _player.setUrl("https://github.com/App2Sales/mobile-challenge/raw/master/a-arte-da-guerra.mp3");
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.ready,
+    ));
+    _state = playbackState;
   }
-  
+
   @override
   Future<void> play() async {
+    playbackState.add(playbackState.value.copyWith(
+      playing: true,
+      controls: [MediaControl.pause],
+    ));
+    await _player.play();
+  }
+
+  @override
+  Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
+    await _player.setUrl(
+      uri.toString(),
+      initialPosition: Duration(
+        milliseconds: extras!["initial_value"]
+      ),
+    );
+    playbackState.add(playbackState.value.copyWith(
+      processingState: AudioProcessingState.ready,
+    ));
+    _state = playbackState;
     playbackState.add(playbackState.value.copyWith(
       playing: true,
       controls: [MediaControl.pause],
@@ -76,7 +89,9 @@ class AudioPlayerHandler extends BaseAudioHandler{
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.idle,
     ));
-    await playbackState.drain();
+    // AudioProcessingState.
+    // await AudioService.cacheManager.removeFile("libCachedImageData");
+    // await playbackState.drain();
   }
 
   // PlaybackState _transformEvent(PlaybackEvent event) {
