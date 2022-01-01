@@ -62,6 +62,10 @@ class _AudioPage extends State<ViewerAudios> {
     );
   }
 
+  void doAction(Future<void> action) async {
+    await action;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,8 +79,8 @@ class _AudioPage extends State<ViewerAudios> {
   }
 
   @override
-  void dispose() async {
-    await widget.audioHandler.stop();
+  void dispose() {
+    // doAction(widget.audioHandler.stop());
     super.dispose();
   }
 
@@ -102,23 +106,45 @@ class _AudioPage extends State<ViewerAudios> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _button(Icons.fast_rewind, widget.audioHandler.rewind),
+                    _button(
+                      Icons.fast_rewind,
+                      (){
+                        doAction(widget.audioHandler.rewind());
+                      }
+                    ),
                     if (playing)
-                      _button(Icons.pause, widget.audioHandler.pause)
+                      _button(
+                        Icons.pause,
+                        (){
+                          doAction(widget.audioHandler.pause());
+                        }                        
+                      )
                     else
                     _button(
                       Icons.play_arrow,
-                      () {
-                        widget.audioHandler.playFromUri(
-                          Uri.parse(widget.url),
-                          {
-                            "initial_value": currentPosition
-                          } 
+                      (){
+                        doAction(
+                          widget.audioHandler.playFromUri(
+                            Uri.parse(widget.url),
+                            {
+                              "initial_value": currentPosition
+                            } 
+                          )
                         );
-                      }
+                      },
                     ),
-                    _button(Icons.stop, widget.audioHandler.stop),
-                    _button(Icons.fast_forward, widget.audioHandler.fastForward),
+                    _button(
+                      Icons.stop,
+                      (){
+                        doAction(widget.audioHandler.stop());
+                      }                      
+                    ),
+                    _button(
+                      Icons.fast_forward,
+                      (){
+                        doAction(widget.audioHandler.fastForward());
+                      }                      
+                    ),
                   ]
                 ),
                 // StreamBuilder<MediaState>(

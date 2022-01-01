@@ -22,16 +22,26 @@ Future<void> finishAudioHandler(AudioHandler handler) async {
 class AudioPlayerHandler extends BaseAudioHandler{
   final _player = AudioPlayer();
   late dynamic _state;
+  late Uri? _currentUri;
+  late int? _currentPosition;
 
   dynamic get state => _state;
   AudioPlayer get player => _player;
   
   AudioPlayerHandler(){
+    _currentUri = null;
+    _currentPosition = null;
     playbackState.add(playbackState.value.copyWith(
-      controls: [MediaControl.play],
+      androidCompactActionIndices: [1, 2],
+      controls: [MediaControl.rewind, MediaControl.play, MediaControl.stop, MediaControl.fastForward],
+      systemActions: {
+        MediaAction.seek,
+        MediaAction.seekForward,
+        MediaAction.seekBackward,
+        MediaAction.playFromUri
+      },
       processingState: AudioProcessingState.loading,
     ));
-    //preparePlayer();
     _state = playbackState;
   }  
 
@@ -45,53 +55,64 @@ class AudioPlayerHandler extends BaseAudioHandler{
 
   @override
   Future<void> play() async {
+    // await playFromUri(_currentUri!);
     playbackState.add(playbackState.value.copyWith(
       playing: true,
-      controls: [MediaControl.pause],
+      controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
     ));
     await _player.play();
+    _state = playbackState;
   }
 
   @override
   Future<void> playFromUri(Uri uri, [Map<String, dynamic>? extras]) async {
-    await _player.setUrl(
-      uri.toString(),
-      initialPosition: Duration(
-        milliseconds: extras!["initial_value"]
-      ),
-    );
+    if(uri != _currentUri){
+      _currentUri = uri;
+      _currentPosition = extras!["initial_value"];
+      await _player.setUrl(
+        _currentUri.toString(),
+        initialPosition: Duration(
+          milliseconds: _currentPosition!
+        ),
+      );
+    }
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.ready,
     ));
-    _state = playbackState;
     playbackState.add(playbackState.value.copyWith(
       playing: true,
-      controls: [MediaControl.pause],
+      controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
     ));
     await _player.play();
+    _state = playbackState;
   }
 
   @override
   Future<void> pause() async {
+    Duration current = await AudioService.position.firstWhere((duration) => true);
+    _currentPosition = current.inMilliseconds;
     playbackState.add(playbackState.value.copyWith(
       playing: false,
-      controls: [MediaControl.play],
+      controls: [MediaControl.rewind, MediaControl.play, MediaControl.stop, MediaControl.fastForward],
     ));
     await _player.pause();
+    _state = playbackState;
   }
 
   @override
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
+  }
 
   @override
   Future<void> stop() async {
-    await _player.stop();
     playbackState.add(playbackState.value.copyWith(
+      playing: false,
       processingState: AudioProcessingState.idle,
     ));
-    // AudioProcessingState.
-    // await AudioService.cacheManager.removeFile("libCachedImageData");
-    // await playbackState.drain();
+    _currentUri = null;
+    _currentPosition = null;
+    await _player.dispose();
   }
 
   // PlaybackState _transformEvent(PlaybackEvent event) {
